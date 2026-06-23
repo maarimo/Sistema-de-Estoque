@@ -2,8 +2,10 @@ package com.maarimo.estoque.service;
 
 import com.maarimo.estoque.dto.ProdutoRequestDTO;
 import com.maarimo.estoque.dto.ProdutoResponseDTO;
+import com.maarimo.estoque.entity.Categoria;
 import com.maarimo.estoque.entity.Produto;
 import com.maarimo.estoque.exception.ProdutoNaoEncontradoException;
+import com.maarimo.estoque.repository.CategoriaRepository;
 import com.maarimo.estoque.repository.ProdutoRepository;
 import org.springframework.stereotype.Service;
 
@@ -14,13 +16,20 @@ import java.util.List;
 public class ProdutoServiceImpl implements ProdutoService {
 
     private final ProdutoRepository repository;
+    private final CategoriaRepository categoriaRepository;
 
-    public ProdutoServiceImpl(ProdutoRepository repository) {
+    public ProdutoServiceImpl(ProdutoRepository repository, CategoriaRepository categoriaRepository) {
         this.repository = repository;
+        this.categoriaRepository = categoriaRepository;
     }
+
 
     @Override
     public ProdutoResponseDTO criar(ProdutoRequestDTO dto) {
+
+        Categoria categoria = categoriaRepository.findById(dto.categoriaId())
+                .orElseThrow(() ->
+                        new RuntimeException("Categoria não encontrada"));
 
         Produto produto = Produto.builder()
                 .codigo(dto.codigo())
@@ -30,6 +39,7 @@ public class ProdutoServiceImpl implements ProdutoService {
                 .precoVenda(dto.precoVenda())
                 .quantidade(dto.quantidade())
                 .estoqueMinimo(dto.estoqueMinimo())
+                .categoria(categoria)
                 .build();
 
         repository.save(produto);
@@ -38,6 +48,7 @@ public class ProdutoServiceImpl implements ProdutoService {
     }
 
     private ProdutoResponseDTO converter(Produto produto) {
+
         return new ProdutoResponseDTO(
                 produto.getId(),
                 produto.getCodigo(),
@@ -46,7 +57,10 @@ public class ProdutoServiceImpl implements ProdutoService {
                 produto.getPrecoCusto(),
                 produto.getPrecoVenda(),
                 produto.getQuantidade(),
-                produto.getEstoqueMinimo()
+                produto.getEstoqueMinimo(),
+                produto.getCategoria() != null
+                        ? produto.getCategoria().getNome()
+                        : null
         );
     }
 
@@ -72,7 +86,12 @@ public class ProdutoServiceImpl implements ProdutoService {
     public ProdutoResponseDTO atualizar(Long id, ProdutoRequestDTO dto) {
 
         Produto produto = repository.findById(id)
-                .orElseThrow(() -> new ProdutoNaoEncontradoException(id));
+                .orElseThrow(() ->
+                        new ProdutoNaoEncontradoException(id));
+
+        Categoria categoria = categoriaRepository.findById(dto.categoriaId())
+                .orElseThrow(() ->
+                        new RuntimeException("Categoria não encontrada"));
 
         produto.setCodigo(dto.codigo());
         produto.setNome(dto.nome());
@@ -81,6 +100,7 @@ public class ProdutoServiceImpl implements ProdutoService {
         produto.setPrecoVenda(dto.precoVenda());
         produto.setQuantidade(dto.quantidade());
         produto.setEstoqueMinimo(dto.estoqueMinimo());
+        produto.setCategoria(categoria);
 
         repository.save(produto);
 

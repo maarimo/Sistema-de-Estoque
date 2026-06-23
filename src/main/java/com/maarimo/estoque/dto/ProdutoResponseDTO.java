@@ -10,5 +10,6 @@ public record ProdutoResponseDTO(
         BigDecimal precoCusto,
         BigDecimal precoVenda,
         Integer quantidade,
-        Integer estoqueMinimo
+        Integer estoqueMinimo,
+        String categoria
 ) {}

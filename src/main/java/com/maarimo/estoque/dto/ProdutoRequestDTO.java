@@ -33,6 +33,10 @@ public record ProdutoRequestDTO(
 
         @Schema(example = "3")
         @NotNull
-        Integer estoqueMinimo
+        Integer estoqueMinimo,
+
+        @Schema(example = "Eletronicos")
+        @NotNull
+        Long categoriaId
 
 ) {}
